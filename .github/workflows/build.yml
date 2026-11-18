@@ -54,7 +54,7 @@ jobs:
           cd "$PROJ"
           APK=app/build/outputs/apk/release/app-release.apk
           ls -lh "$APK"
-          unzip -l "$APK" | grep -q "assets/model-pt/conf" || { echo "ERRO: o APK não contém o modelo de voz"; exit 1; }
+          unzip -l "$APK" | grep -Eq "assets/model-pt/(am/)?final.mdl" || { echo "ERRO: o APK não contém o modelo de voz"; exit 1; }
           echo "OK: modelo de voz embutido no APK"
 
       - name: Testes unitários (não bloqueiam o APK)
