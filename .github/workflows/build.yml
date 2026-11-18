@@ -35,15 +35,19 @@ jobs:
           cd "$PROJ"
           gradle assembleRelease --stacktrace --console=plain 2>&1 | tee "$GITHUB_WORKSPACE/build.log"
 
-      - name: Resumo do erro (aparece na página principal da execução)
+      - name: Resumo do erro (aparece em Annotations e no Summary)
         if: failure()
         run: |
+          ERR=$(grep -E "^e: |What went wrong|Could not |Execution failed|Unresolved" -A2 "$GITHUB_WORKSPACE/build.log" | head -14)
+          echo "$ERR"
           {
             echo '### Erro de compilação'
             echo '```'
-            grep -E "^e: |What went wrong|Could not |error:|Execution failed|FAILURE|Unresolved|Exception" -A3 "$GITHUB_WORKSPACE/build.log" | head -50
+            echo "$ERR"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          MSG=$(echo "$ERR" | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Erro de compilação::$MSG"
 
       - name: Verificar que o APK contém o modelo de voz
         run: |
