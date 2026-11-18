@@ -25,15 +25,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Modelo de voz (Vosk português)
-        run: |
-          cd "$PROJ"
-          mkdir -p app/src/main/assets/model-pt
-          curl -L -o /tmp/m.zip https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip
-          unzip -q /tmp/m.zip -d /tmp/m
-          cp -r /tmp/m/*/* app/src/main/assets/model-pt/
-          ls app/src/main/assets/model-pt
-
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.7'
@@ -41,7 +32,15 @@ jobs:
       - name: Compilar
         run: |
           cd "$PROJ"
-          gradle assembleDebug --stacktrace
+          gradle assembleRelease --stacktrace
+
+      - name: Verificar que o APK contém o modelo de voz
+        run: |
+          cd "$PROJ"
+          APK=app/build/outputs/apk/release/app-release.apk
+          ls -lh "$APK"
+          unzip -l "$APK" | grep -q "assets/model-pt/conf" || { echo "ERRO: o APK não contém o modelo de voz"; exit 1; }
+          echo "OK: modelo de voz embutido no APK"
 
       - name: Testes unitários (não bloqueiam o APK)
         continue-on-error: true
@@ -52,11 +51,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: HoloMind-apk
-          path: ${{ env.PROJ }}/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJ }}/app/build/outputs/apk/release/app-release.apk
 
       - name: Publicar em Releases (download direto no telemóvel)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: HoloMind build ${{ github.run_number }}
-          files: ${{ env.PROJ }}/app/build/outputs/apk/debug/app-debug.apk
+          files: ${{ env.PROJ }}/app/build/outputs/apk/release/app-release.apk
