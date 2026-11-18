@@ -31,8 +31,19 @@ jobs:
 
       - name: Compilar
         run: |
+          set -o pipefail
           cd "$PROJ"
-          gradle assembleRelease --stacktrace
+          gradle assembleRelease --stacktrace --console=plain 2>&1 | tee "$GITHUB_WORKSPACE/build.log"
+
+      - name: Resumo do erro (aparece na página principal da execução)
+        if: failure()
+        run: |
+          {
+            echo '### Erro de compilação'
+            echo '```'
+            grep -E "^e: |What went wrong|Could not |error:|Execution failed|FAILURE|Unresolved|Exception" -A3 "$GITHUB_WORKSPACE/build.log" | head -50
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verificar que o APK contém o modelo de voz
         run: |
