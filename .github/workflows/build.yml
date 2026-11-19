@@ -56,6 +56,7 @@ jobs:
           ls -lh "$APK"
           unzip -l "$APK" | grep -Eq "assets/model-pt/(am/)?final.mdl" || { echo "ERRO: o APK não contém o modelo de voz"; exit 1; }
           echo "OK: modelo de voz embutido no APK"
+          if unzip -l "$APK" | grep -Eq "assets/model-en/(am/)?final.mdl"; then echo "OK: modelo inglês embutido"; else echo "AVISO: sem modelo inglês (o app funciona só em português)"; fi
 
       - name: Testes unitários (não bloqueiam o APK)
         continue-on-error: true
